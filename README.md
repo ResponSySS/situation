@@ -45,3 +45,7 @@ Render a text into a pretty image.
 `situation.sh -q "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire." -a "Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"`
 
 * The previous command, using default font, colors, and background image, gives us: ![situation-render.png](https://github.com/ResponSySS/situation/raw/master/Test/situation-render.png)
+
+`situation.sh -q "Le principe de la production marchande, c’est la perte de soi dans la création chaotique et inconsciente d’un monde qui échappe totalement à ses créateurs. Le noyau radicalement révolutionnaire de l’autogestion généralisée, c’est, au contraire, la direction consciente par tous de l’ensemble de la vie. [...] La tâche des Conseils Ouvriers ne sera donc pas l’autogestion du monde existant, mais sa transformation qualitative ininterrompue : le dépassement concret de la marchandise (en tant que gigantesque détour de la production de l’homme par lui-même)." -a "Internationale Situationniste, De la Misère en Milieu Étudiant (1966") -o longer.png -f`
+
+* Same with a longer quote: ![longer.png](https://github.com/ResponSySS/situation/raw/master/Test/longer.png)
