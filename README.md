@@ -28,11 +28,19 @@ Render a text into a pretty image.
                     set font color with hexadecimal code (like "#FF00FF"), RGB
                         values (like "rgb(255,0,123)") or ImageMagick color
                         (show list with `convert -list color`) (default: snow3)
+                        NOTE: always put quotes around RGB values and hex code as
+                        in: "rgb(12,231,65)" and "#EF23EA"!
     -f              force overwrite of output file (default: no)
     -h|--help
                     display this help
 
 ### Example:
 
- `SyS-situation.sh -q "The Capital is really like, shit bruh, I swear!" -a "Karlos Marakas to Fredo Engeles, in a bar" -b my_bg.png -fontcol #FF00FF -fontq Gentium -fonta my_font.otf -s 2000x1500 -o quote.png -f`
-    
+ `situation.sh -q "The Capital is really like, shit bruh, I swear!" -a "Karlos Marakas to Fredo Engeles, in a bar" -b my_bg.png -fontcol #FF00FF -fontq Gentium -fonta my_font.otf -s 2000x1500 -o quote.png -f`
+ 
+ From this picture:
+ ![](http://www.goldenmoustache.com/wp-content/uploads/2016/06/Hollande-Rap.jpg) 
+ and this OTF font: ![direct link](https://github.com/ResponSySS/situation/raw/master/Test/LinuxBiolinumOItalic.otf)
+ 
+ We get:
+ ![](https://github.com/ResponSySS/situation/raw/master/Test/quote.png)
