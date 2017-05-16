@@ -34,13 +34,14 @@ Render a text into a pretty image.
     -h|--help
                     display this help
 
-### Example:
+### Examples:
 
  `situation.sh -q "The Capital is really like, shit bruh, I swear!" -a "Karlos Marakas to Fredo Engeles, in a bar" -b my_bg.png -fontcol #FF00FF -fontq Gentium -fonta my_font.otf -s 2000x1500 -o quote.png -f`
  
- From this picture:
- ![](http://www.goldenmoustache.com/wp-content/uploads/2016/06/Hollande-Rap.jpg) 
- and this OTF font: ![direct link](https://github.com/ResponSySS/situation/raw/master/Test/LinuxBiolinumOItalic.otf)
- 
- We get:
- ![](https://github.com/ResponSySS/situation/raw/master/Test/quote.png)
+ * By the example above, from this picture: ![my_bg.jpg](http://www.goldenmoustache.com/wp-content/uploads/2016/06/Hollande-Rap.jpg) 
+ and this OTF font: ![direct link](https://github.com/ResponSySS/situation/raw/master/Test/LinuxBiolinumOItalic.otf), we get:
+ ![quote.png](https://github.com/ResponSySS/situation/raw/master/Test/quote.png)
+
+`situation.sh -q "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire." -a "Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"`
+
+* The previous command, using default font, colors, and background image, gives us: ![situation-render.png](https://github.com/ResponSySS/situation/raw/master/Test/situation-render.png)
