@@ -22,8 +22,10 @@ set -e                                       # Exit immediately if a command exi
 ## - respect the size of the provided bg picture : TOO DIFFICULT DUE TO
 ### THE FACT THAT MAKING QUOTE + TEXT REQUIRES KNOWING THE BG SIZE IN ADVANCE (BC
 ### WE HAVE TO SUPERSAMPLE) => NOT IF ASPECT RATIO IS PRESERVED!
-### - more test with bg pic:
-###   - pics with other aspect ratio
+## - more test with bg pic:
+###     - pics with other aspect ratio
+## - change text formatting by using "[QUOTE] --- [AUTHOR]" as arg
+###     - $ echo "[QUOTE] --- [AUTHOR]" | gawk -F" --- " '{print "QUOTE\n"$1"\nAUTHOR\n"$2}'
 ##
 ##############################
 
