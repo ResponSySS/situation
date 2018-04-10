@@ -1,0 +1,1 @@
+/usr/local/bin/SyS-situation.sh -q "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire." -a "Internationale Situationniste, De la Misère en Milieu Étudiant (1966)" -fontcol LemonChiffon2 -fontq Gentium -fonta ./LinBiolinum_RI.otf -s 1000x750 -f --debug

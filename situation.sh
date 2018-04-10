@@ -1,296 +1,327 @@
-#!/bin/bash - 
+#!/bin/bash -
 #===============================================================================
 #
 #         USAGE: ./situation.sh --help
-# 
-#   DESCRIPTION: Render a text into a pretty image.
-# 
-#       OPTIONS: ---
-#  REQUIREMENTS: imagemagick, ttf-linux-libertine (optional, for default fonts)
-#          BUGS: ---
-#         NOTES: ---
-#        AUTHOR: Sylvain Saubier (ResponSyS), mail@systemicresponse.com
+#
+#   DESCRIPTION: 
+#  REQUIREMENTS: ---
+#        AUTHOR: Sylvain S. (ResponSyS), mail@sylsau.com
 #  ORGANIZATION: 
-#       CREATED: 05/15/2017 21:02
-#      REVISION:  ---
+#       CREATED: 04/09/2018 07:55:01 PM
 #===============================================================================
-
-#set -o nounset                              # Treat unset variables as an error
-set -e                                       # Exit immediately if a command exits with a non-zero status
-
 # TODO ::: Mon 15 May 2017 09:27:22 PM CEST
 ## - respect the size of the provided bg picture : TOO DIFFICULT DUE TO
 ### THE FACT THAT MAKING QUOTE + TEXT REQUIRES KNOWING THE BG SIZE IN ADVANCE (BC
 ### WE HAVE TO SUPERSAMPLE) => NOT IF ASPECT RATIO IS PRESERVED!
 ## - more test with bg pic:
 ###     - pics with other aspect ratio
-## - change text formatting by using "[QUOTE] --- [AUTHOR]" as arg
-###     - $ echo "[QUOTE] --- [AUTHOR]" | gawk -F" --- " '{print "QUOTE\n"$1"\nAUTHOR\n"$2}'
-##
 ##############################
 
-montage="montage"
-convert="convert"
-composite="composite"
-cp="cp"
-mv="mv"
-rm="rm"
+# Enable strict mode in debug mode
+[[ $DEBUG ]] #&& set -o nounset 
+set -o pipefail -o errexit
 
-s_quote=""
-s_author=""
-f_bgImg="pattern:gray10"            # default bg
-s_bgGravity="north"                 # default gravity when no bg file provided
-v_bgCustom=0
-s_fontColor="snow3"                 # default font color
-s_fontQ="Linux-Biolinum-O"          # default font for quote
-s_fontA="Linux-Biolinum-O-Italic"   # default font for author
-s_imgSizeDflt="1000x750"            # default picture size
-s_imgSize="$s_imgSizeDflt"          # default picture size
-f_outfileDflt="situation-render.png"    # default outfile
-f_outfile="$f_outfileDflt"          # default outfile
-v_overwriteOutfile=0
-v_debug=0
-v_keepfiles=0
+LIBSYL=${LIBSYL:-$HOME/Devel/Src/radiquotes/libsyl.sh}
+source "$LIBSYL"
+LIBPARSE=${LIBPARSE:-$HOME/Devel/Src/radiquotes/libparse.sh}
+source "$LIBPARSE"
 
-s_tmpDir="/tmp"
-f_dirTmp="$(mktemp -d -p "$s_tmpDir" XXXXX.situa)"
-f_bgTmpInit="$f_dirTmp/bgtmpinit.png"
-f_bgTmp="$f_dirTmp/bgtmp.png"
-f_authorTmp="$f_dirTmp/authortmp.png"
-f_quoteTmp="$f_dirTmp/quotetmp.png"
-f_textTmp="$f_dirTmp/texttmp.png"
-f_renderTmp="$f_dirTmp/rendertmp.png"
+VERSION=0.9
 
-function fn_errorFontColor {
-    echo ":: ERROR : \"$s_fontColor\" is a not a correct font color."
-    echo ":: Use either hexadecimal code (like \"#FF00FF\"), RGB values
-    (like \"rgb(255,0,255)\") or ImageMagick color (use \`convert -list color\`
-    to show all available colors)."
-    fn_exit
-}
-function fn_errorFontQ {
-    echo ":: ERROR : \"$s_fontQ\" is not available or not an OTF font."
-    echo ":: \`convert -list font\` to show all available fonts."
-    fn_exit
-}
-function fn_errorFontA {
-    echo ":: ERROR : \"$s_fontA\" is not available or not an OTF font."
-    echo ":: \`convert -list font\` to show all available fonts."
-    fn_exit
-}
-function fn_errorBgFile {
-    echo ":: ERROR : $f_bgImg is not an image." > /dev/stderr
-    fn_exit
-}
+QUOTE_STRING=
+FONT_QUOTE="Linux-Biolinum-O"
+FONT_SOURCE="Linux-Biolinum-O-Italic"
+FONT_COLOR="snow3"
+BG_FILE=
+BG_COLOR="black"
+SIZE="1000x750"
+EXT="png"
+OUTFILE="${TMP_DIR}/situation.${EXT}"
+QUOTE_STRING_SET=
 
-function fn_clean {
-    if test ! $v_keepfiles -eq 1; then
-        echo ":: Cleaning..." > /dev/stderr
-        $rm -fr "$f_dirTmp"
-    fi
-}
+DIR_RENDER_TMP=
+F_BG_TMP_0=
+F_BG_TMP=
+F_QUOTE_TMP=
+F_SOURCE_TMP=
+F_TEXT_TMP=
+F_RENDER_TMP=
+# Options
+OPT_FORCE=
+OPT_OPEN=
+OPT_KEEP_FILES=
+# Error codes
+ERR_IM_BG=11
+ERR_IM_QUOTE=22
+ERR_IM_SOURCE=33
+ERR_IM_TEXT=44
+ERR_IM_COMPOSE=55
 
-function fn_exit {
-    fn_clean
-    echo ":: Exiting..." > /dev/stderr
-    exit
-}
-
-function fn_help {
-    echo """
-Render a text into a pretty image.
->> Requires: imagemagick, ttf-linux-libertine (optional, for default fonts)
-
-Usage:
-    $(basename "$0") -q STRING -a STRING [OPTION]
-
-Options:
-    -q STRING       set quote text (mandatory)
-    -a STRING       set name of author (mandatory)
-    -o FILE         set path to output file (default: $f_outfileDflt)
-    -b FILE         set background picture
-    -s [X]x[Y]      set size of rendered image in pixels with a 4:3 aspect ratio 
-                        (e.g. \"2000x1500\") (default: $s_imgSizeDflt)
-                        NOTE: a size larger than 3000x2250 is not recommended and
-                        not respecting the 4:3 aspect ratio will produce weird
-                        results
-    -fontq (PATH|NAME) 
-    -fonta (PATH|NAME)
-                    set font for quote and author with path to OTF font or font 
-                        name (show list with \`convert -list font\`) (default: 
-                        Linux-Biolinum-O, Linux-Biolinum-O-Italic)
-    -fontcol COLOR
-                    set font color with hexadecimal code (like \"#FF00FF\"), RGB
-                        values (like \"rgb(255,0,123)\") or ImageMagick color
-                        (show list with \`convert -list color\`) (default: snow3)
-                        NOTE: always put quotes around RGB values and hex code as
-                        in: \"rgb(12,231,65)\" and \"#EF23EA\"!
+# Print help
+fn_show_help() {
+    cat <<EOF
+$SCRIPT_NAME $VERSION
+   Render a text into a pretty image.
+USAGE
+    $SCRIPT_NAME "{QUOTE STRING}" [OPTION]
+OPTIONS
+    QUOTE STRING    set text (see QUOTE STRING FORMAT) (mandatory)
+    -o FILE         set output file (default: '$OUTFILE')
+    -b NAME         set background color (default: '$BG_COLOR')
+    -bf FILE        set background image (overrides -b)
+    -s {X}x{Y}      set size of rendered image in pixels with a 4:3 aspect ratio 
+                     (e.g. 2000x1500) (default: '$SIZE')
+                    NOTE: a size larger than 3000x2250 is not recommended
+    -fontq {PATH|NAME} 
+    -fonts {PATH|NAME}
+                    set font for quote and source with path to font file or name
+                     (default: '$FONT_QUOTE', '$FONT_SOURCE')
+    -c COLOR
+                    set font color with hexadecimal code (e.g. "#FF00FF"), RGB
+                     values (e.g. "rgb(255,0,123)") or ImageMagick color
+                     (default: '$FONT_COLOR')
+                    NOTE: always put quotes around this argument
     -f              force overwrite of output file (default: no)
-    -h|--help
-                    display this help
-
-Example:
-    $(basename "$0") -q \"The Capital is really like, shit bruh, I swear!\" \\
-        -a \"Karlos Marakas to Fredo Engeles, in a bar\" -b my_bg.png \\
-        -fontcol pink2 -fontq Gentium -fonta my_font.otf -s 2000x1500 \\
+    -h, --help      display this help
+    --open          open rendered image file via \`xdg-open\`
+    --list-fonts    show list of available fonts via \`magick -list font\`
+    --list-colors   show list of available colors via \`magick -list color\`
+QUOTE STRING FORMAT
+    The text of a quote is parsed from a string formatted as follows:
+        {quote}@{source}
+    Examples:
+        "Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l’Avoir"
+        "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
+EXAMPLE
+    $SCRIPT_NAME "The Capital is really like, shit bruh, I swear!@Karlos Marakas to Fredo Engeles, in a bar"\\
+        -bf my_bg.png -c pink2 -fontq Gentium -fonts my_font.otf -s 2000x1500 \\
         -o quote.png -f
-    """
-    fn_exit
+EOF
 }
 
-if test -z "$*"; then
-    fn_help
-else
-    # Individually check provided args
-    while test -n "$1" ; do
-        case $1 in
-            "--help"|"-h")
-                fn_help
-                break
-                ;;
-            "-q")
-                s_quote="$2"
-                shift
-                ;;
-            "-a")
-                s_author="$2"
-                shift
-                ;;
-            "-s")
-                s_imgSize="$2"
-                shift
-                ;;
-            "-b")
-                f_bgImg="$2"
-                v_bgCustom=1
-                shift
-                ;;
-            "-fontq")
-                s_fontQ="$2"
-                shift
-                ;;
-            "-fonta")
-                s_fontA="$2"
-                shift
-                ;;
-            "-fontcol")
-                s_fontColor="$2"
-                shift
-                ;;
-            "-o")
-                f_outfile="$2"
-                v_overwriteOutfile=1
-                shift
-                ;;
-            "-f")
-                v_overwriteOutfile=1
-                ;;
-            "--keepfiles")
-                v_keepfiles=1
-                ;;
-            "--debug")
-                v_debug=1
-                ;;
-            *)
-                echo ":: ERROR : Invalid argument: $1" > /dev/stderr
-                echo ":: \`$0 -h\` to show help."
-                fn_exit
-                ;;
-        esac	# --- end of case ---
-        # Delete $1
-        shift
-    done
-fi
+fn_print_params() {
+	cat 1>&2 << EOF
+ QUOTE_STRING_SET $QUOTE_STRING_SET
+ QUOTE_STRING     $QUOTE_STRING
+ BG_COLOR         $BG_COLOR
+ BG_FILE          $BG_FILE
+ FONT_QUOTE       $FONT_QUOTE
+ FONT_SOURCE      $FONT_SOURCE
+ FONT_COLOR       $FONT_COLOR
 
-# CHECKING ARGS
-if test -z "$s_quote" || test -z "$s_author"; then
-    echo ":: ERROR : missing QUOTE or AUTHOR." > /dev/stderr
-    fn_exit
-fi
-# CHECKING FONT COLOR and NAMES
-# Testing if correct rgb(r,g,b) param
-if test ! "$(echo "$s_fontColor" | grep "^rgb([0-9]*,[0-9]*,[0-9]*)$" -)"; then
-    # Testing if correct hex code #XXYYZZ param
-    if test ! "$(echo "$s_fontColor" | grep -E "^#[A-Za-z0-9]{6}$" -)"; then
-        # Testing if correct ImageMagick color
-        if test ! "$(convert -list color | grep -w "$s_fontColor")"; then
-            fn_errorFontColor
-        fi
-    fi
-fi
-if test ! "$(convert -list font | grep -w "Font:" | grep -w "$s_fontQ")"; then
-    if test "$(file -b "$s_fontQ")" != "OpenType font data"; then
-        fn_errorFontQ
-    fi
-fi
-if test ! "$(convert -list font | grep -w "Font:" | grep -w "$s_fontA")"; then
-    if test "$(file -b "$s_fontA")" != "OpenType font data"; then
-        fn_errorFontA
-    fi
-fi
+ OPT_FORCE        $OPT_FORCE
+ OPT_OPEN         $OPT_OPEN
+ OPT_KEEP_FILES   $OPT_KEEP_FILES
 
-# DEBUGGING
-if test $v_debug -eq 1; then
-    # changing cmd to get verbose
-    montage="montage -verbose"
-    convert="convert -verbose"
-    composite="composite -verbose"
-    mv="mv --verbose"
-    cp="cp --verbose"
-    rm="rm --verbose"
-    # checking params
-    echo
-    echo "WORKING DIR = $f_dirTmp"
-    echo "BG = $f_bgImg , $v_bgCustom"
-    echo "QUOTE = $s_quote"
-    echo "AUTHOR = $s_author"
-    echo "FONTS = $s_fontQ , $s_fontA"
-    echo "FONT COLOR = $s_fontColor"
-    echo "IMG SIZE = $s_imgSize"
-    echo "OUTFILE = $f_outfile"
-    echo
-fi
+ OUTFILE          $OUTFILE
+ SIZE             $SIZE
 
-# MAKING BG
-echo ":: Creating background..."
-# testing if bg file provided
-if test $v_bgCustom -eq 1; then
-    # testing if bg file is correct image file
-    if test "$(identify "$f_bgImg")"; then
-        s_bgGravity="center"            # change gravity to center for cropping to center of provided bg img
-        $cp --force "$f_bgImg" "$f_bgTmpInit"
-    else
-        fn_errorBgFile
-    fi
-else
-    # creating bg with im
-    $montage -mode concatenate -size "$s_imgSize" "$f_bgImg" png:- | $convert png:- -virtual-pixel tile -distort arc 360 -blur 5x5 +repage "$f_bgTmpInit"
-fi
-$convert "$f_bgTmpInit" -resize "$s_imgSize^" -gravity $s_bgGravity -crop "$s_imgSize+0+0" +repage "$f_bgTmp"
+EOF
+}
+# Check full quote string was set
+fn_check_quote_string_set() {
+	[[ $QUOTE_STRING_SET ]] || syl_exit_err "please specify quote string (format: \"{quote}@{source}\")" $ERR_WRONG_ARG
+}
+# Check full quote string format
+fn_check_quote_string() {
+	[[ "$QUOTE_STRING" =~ .+@.+ ]] || syl_exit_err "invalid quote string '$QUOTE_STRING'\n\tformat: \"{quote}@{source}\"" $ERR_WRONG_ARG
+}
+# Check bg file
+fn_check_bg_file() {
+	local ERR=
+	if [[ ! -f "$BG_FILE" ]]; then
+		ERR=1
+	else
+		magick identify "$BG_FILE" 1>/dev/null || ERR=1
+	fi
+	[[ $ERR ]] && syl_exit_err "invalid background image '$BG_FILE'" $ERR_WRONG_ARG
+}
+# Check bg color
+fn_check_bg_color() {
+	magick -list color | fgrep -w "$BG_COLOR" 1>/dev/null || syl_exit_err "invalid background color '$BG_COLOR'" $ERR_WRONG_ARG
+}
+# Check font color
+fn_check_font_color() {
+	# Font color: is ! hex?
+	if [[ ! "$FONT_COLOR" =~ ^\#[A-Fa-f0-9]{6}$ ]]; then
+		# Font color: is ! rgb(...)?
+		if [[ ! "$FONT_COLOR" =~ ^rgb\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\)$ ]]; then
+			# Font color: is ! IM color?
+			magick -list color | fgrep -w "$FONT_COLOR" 1>/dev/null || syl_exit_err "invalid font color '$FONT_COLOR'" $ERR_WRONG_ARG
+		fi
+	fi
+}
+# Check font files/names 
+fn_check_fonts() {
+	for F in "$FONT_QUOTE" "$FONT_SOURCE"; do
+		if [[ ! -f "$F" ]]; then
+			# not perfect as it matches "(Font: Unna)" in "Font: Unna-Bold"
+			magick -list font | fgrep -w "Font: $F" 1>/dev/null || syl_exit_err "invalid font '$F'" $ERR_WRONG_ARG
+		fi
+	done
+}
+# Check arguments
+fn_check_args() {
+	fn_check_quote_string_set
+	fn_check_quote_string
+	[[ $BG_FILE ]] && fn_check_bg_file || fn_check_bg_color
+	fn_check_font_color
+	fn_check_fonts
+}
+# Set tmp files
+fn_set_tmp_files() {
+	F_BG_TMP_0="${DIR_RENDER_TMP}/bg_0.$EXT"
+	F_BG_TMP="${DIR_RENDER_TMP}/bg.$EXT"
+	F_QUOTE_TMP="${DIR_RENDER_TMP}/quote.$EXT"
+	F_SOURCE_TMP="${DIR_RENDER_TMP}/source.$EXT"
+	F_TEXT_TMP="${DIR_RENDER_TMP}/text.$EXT"
+	F_RENDER_TMP="${DIR_RENDER_TMP}/render.$EXT"
+	syl_say_debug "Temporary files: \n\t$F_BG_TMP_0 \n\t$F_BG_TMP \n\t$F_QUOTE_TMP \n\t$F_SOURCE_TMP \n\t$F_TEXT_TMP \n\t$F_RENDER_TMP"
+}
+# Make bg canvas
+fn_make_bg() {
+	# Make bg with provided img
+	if [[ $BG_FILE ]]; then
+		cp $V -f "$BG_FILE" "$F_BG_TMP_0" || syl_exit_err "can't copy '$BG_FILE' to '$F_BG_TMP_0'" $ERR_NO_FILE
+		magick convert $V_IM "$F_BG_TMP_0" -resize "$SIZE^" -gravity "center" -crop "$SIZE+0+0" +repage "$F_BG_TMP" || 
+			syl_exit_err "can't make background with file '$BG_FILE'" $ERR_IM_BG
+	else
+		magick convert $V_IM xc:${BG_COLOR} -geometry "$SIZE!" "$F_BG_TMP" ||
+			syl_exit_err "can't make background with color '$BG_COLOR'" $ERR_IM_BG
+	fi
+}
+# Make quote canvas
+# $1: quote string, $2: enables guillemets (opt), $3: text gravity (opt)
+fn_make_text_quote() {
+	local QUOTE="$1"
+	local GRAVITY="west"
+	[[ $2 ]] && QUOTE="« $1 »"
+	[[ $3 ]] && GRAVITY="$3"
+	printf "$QUOTE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x1800 -font "$FONT_QUOTE" -gravity "$GRAVITY" -bordercolor none -border 5% caption:@- "$F_QUOTE_TMP" || syl_exit_err "can't make quote text out of \"$QUOTE\"" $ERR_IM_QUOTE
+}
+# Make source canvas
+# $1: source string, $2: text gravity (opt)
+fn_make_text_source() {
+	local GRAVITY="east"
+	[[ $2 ]] && GRAVITY="$2"
+	printf "$1" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 2000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" -bordercolor none -border 25%   caption:@- "$F_SOURCE_TMP" || syl_exit_err "can't make source text out of \"$SOURCE\"" $ERR_IM_SOURCE
+}
+# Make full text canvas
+fn_make_text() {
+	local QUOTE=
+	local SOURCE=
+	fn_parse_quote "$QUOTE_STRING"
+	QUOTE="$RET"
+	fn_parse_source "$QUOTE_STRING"
+	SOURCE="$RET"
 
-# MAKING TEXT
-echo ":: Creating text..."
-## borders modify img size, so adding borders requires to supersample: make the image in a greater resolution (x2) then resizing to x1
-$convert -background none -fill "$s_fontColor" -size 3000x1800 -font "$s_fontQ" -gravity center -bordercolor none -border 10%  caption:"«\ $s_quote\ »" "$f_quoteTmp"
-$convert -background none -fill "$s_fontColor" -size 2000x450  -font "$s_fontA" -gravity east   -bordercolor none -border 20%  caption:"$s_author"      "$f_authorTmp"
-$convert -background none -fill none -gravity east "$f_quoteTmp" "$f_authorTmp" -append -resize "$s_imgSize"                                            "$f_textTmp"
+	fn_make_text_quote "$QUOTE" 1 "west"
+	fn_make_text_source "$SOURCE"
+	magick convert $V_IM -background none -fill none -gravity east "$F_QUOTE_TMP" "$F_SOURCE_TMP" -append -resize "$SIZE^" -crop "$SIZE+0+0" "$F_TEXT_TMP" ||
+		syl_exit_err "can't make text out of '$F_QUOTE_TMP' and '$F_SOURCE_TMP'" $ERR_IM_TEXT
+}
+# Merge text canvas and background canvas
+fn_compose() {
+	magick composite "$F_TEXT_TMP" "$F_BG_TMP" "$F_RENDER_TMP" || 
+		syl_exit_err "can't 'mv' '$F_RENDER_TMP' to '$OUTFILE'" $ERR_IM_COMPOSE
+}
 
-# COMPOSING
-echo ":: Merging to $f_outfile..."
-$composite "$f_textTmp" "$f_bgTmp" "$f_renderTmp"
-if test $v_overwriteOutfile -eq 1; then
-    $mv --force "$f_renderTmp" "$f_outfile"
-else
-    $mv --interactive "$f_renderTmp" "$f_outfile"
-fi
-if test "$(identify $f_outfile)"; then
-    echo ":: Image was written at: $f_outfile"
-else
-    fn_exit
-fi
 
-# VIEW
-echo ":: All done!"
-xdg-open "$f_outfile" &
+main() {
+	syl_need_cmd "magick"
 
-fn_exit
+	# PARSE ARGUMENTS
+	[[ $# -eq 0 ]] && 	{ fn_show_help ; exit ; }
+	while [[ $# -ge 1 ]]; do
+		case "$1" in
+			"-h"|"--help")
+				fn_show_help
+				exit
+				;;
+			"-o")
+				[[ $2 ]] || syl_exit_err "missing argument to '-o'" $ERR_WRONG_ARG
+				shift
+				OUTFILE="$1"
+				;;
+			"-b")
+				[[ $2 ]] || syl_exit_err "missing argument to '-b'" $ERR_WRONG_ARG
+				shift
+				BG_COLOR="$1"
+				;;
+			"-bf")
+				[[ $2 ]] || syl_exit_err "missing argument to '-bf'" $ERR_WRONG_ARG
+				shift
+				BG_FILE="$1"
+				;;
+			"-s")
+				[[ $2 ]] || syl_exit_err "missing argument to '-s'" $ERR_WRONG_ARG
+				shift
+				SIZE="$1"
+				;;
+			"-fontq")
+				[[ $2 ]] || syl_exit_err "missing argument to '-fontq'" $ERR_WRONG_ARG
+				shift
+				FONT_QUOTE="$1"
+				;;
+			"-fonts")
+				[[ $2 ]] || syl_exit_err "missing argument to '-fonts'" $ERR_WRONG_ARG
+				shift
+				FONT_SOURCE="$1"
+				;;
+			"-c")
+				[[ $2 ]] || syl_exit_err "missing argument to '-c'" $ERR_WRONG_ARG
+				shift
+				FONT_COLOR="$1"
+				;;
+			"-f")
+				OPT_FORCE=1
+				;;
+			"--open")
+				OPT_OPEN=1
+				;;
+			"--list-fonts")
+				magick -list font
+				;;
+			"--list-colors")
+				magick -list color
+				;;
+			"--keep-files")
+				OPT_KEEP_FILES=1
+				;;
+			*)
+				[[ $QUOTE_STRING_SET ]] && msyl_say "[Warning] Quote string was reset."
+				QUOTE_STRING_SET=1
+				QUOTE_STRING="$1"
+				;;
+		esac	# --- end of case ---
+		# Delete $1
+		shift
+	done
+
+	[[ $DEBUG ]] && {
+		V="-v"
+		V_IM="-verbose"
+		fn_print_params
+	}
+
+	# CHECKING ARGS VALIDITY
+	fn_check_args
+
+	syl_mktemp_dir "situation"
+	DIR_RENDER_TMP="$RET"
+	fn_set_tmp_files
+	[[ $OPT_KEEP_FILES ]] || trap 'rm -rfv $DIR_RENDER_TMP' EXIT
+
+	msyl_say "Making background..."
+	fn_make_bg
+	msyl_say "Making text..."
+	fn_make_text
+	msyl_say "Merging to $OUTFILE..."
+	fn_compose
+	mv $V -f "$F_RENDER_TMP" "$OUTFILE" || syl_exit_err "can't 'mv' '$F_RENDER_TMP' to '$OUTFILE'" $ERR_NO_FILE
+
+	[[ $OPT_OPEN ]] && xdg-open "$OUTFILE"
+	msyl_say "All done!"
+}
+
+main "$@"

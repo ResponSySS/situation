@@ -13,17 +13,17 @@ Render a text into a pretty image.
     -b NAME         set background color (default: 'black')
     -bf FILE        set background image (overrides -b)
     -s {X}x{Y}      set size of rendered image in pixels with a 4:3 aspect ratio 
-		     (e.g. 2000x1500) (default: '1000x750')
-		    NOTE: a size larger than 3000x2250 is not recommended
+                    (e.g. 2000x1500) (default: '1000x750')
+                    NOTE: a size larger than 3000x2250 is not recommended
     -fontq {PATH|NAME} 
     -fonts {PATH|NAME}
-		    set font for quote and source with path to font file or name
-		     (default: 'Linux-Biolinum-O', 'Linux-Biolinum-O-Italic')
+                    set font for quote and source with path to font file or name
+                     (default: 'Linux-Biolinum-O', 'Linux-Biolinum-O-Italic')
     -c COLOR
-		    set font color with hexadecimal code (e.g. "#FF00FF"), RGB
-		     values (e.g. "rgb(255,0,123)") or ImageMagick color
-		     (default: 'snow3')
-		    NOTE: always put quotes around this argument
+                    set font color with hexadecimal code (e.g. "#FF00FF"), RGB
+                     values (e.g. "rgb(255,0,123)") or ImageMagick color
+                     (default: 'snow3')
+                    NOTE: always put quotes around this argument
     -f              force overwrite of output file (default: no)
     -h, --help      display this help
     --open          open rendered image file via `xdg-open`
@@ -32,10 +32,10 @@ Render a text into a pretty image.
 
 ## Quote string format
     The text of a quote is parsed from a string formatted as follows:
-	{quote}@{source}
+        {quote}@{source}
     Examples:
-	"Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l’Avoir"
-	"La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
+        "Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l’Avoir"
+        "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
 
 ### Examples:
 

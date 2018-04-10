@@ -1,0 +1,12 @@
+(1)
+	- take gray10 (?) pattern OR an image input
+	- make it 1000x800 (with montage?)
+	- distort it, blur it (mogrify)
+(2)
+	- make the quote text with caption: and borders on 1000x700
+(3)
+	- make the author text with caption: and borders on 1000x200
+(4)
+	- append (2) on top of (3) with convert
+(5)
+	- merge (4) and (1) with composite
