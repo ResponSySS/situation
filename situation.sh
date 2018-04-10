@@ -193,15 +193,17 @@ fn_make_bg() {
 	fi
 }
 # Make quote canvas
-# $1: quote string, $2: enables guillemets (opt), $3: text gravity (opt)
+# $1: quote string, $2: enables guillemets (opt), $3: text gravity (opt), $4: border width (opt)
 fn_make_text_quote() {
 	# adding extra right space to prevent italicized fonts from overflowing right border
 	local QUOTE="$1 "
 	local GRAVITY="west"
+	local BORDER="5%"
 	[[ $2 ]] && QUOTE="« $1 »"
 	[[ $3 ]] && GRAVITY="$3"
+	[[ $4 ]] && BORDER="$4"
 	# create a 3000x1800 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x1800
-	printf "$QUOTE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x1800 -font "$FONT_QUOTE" -gravity "$GRAVITY" caption:@- -bordercolor none -border 5% -repage 0x0 -resize 3000x1800 "$F_QUOTE_TMP" || 
+	printf "$QUOTE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x1800 -font "$FONT_QUOTE" -gravity "$GRAVITY" caption:@- -bordercolor none -border "$BORDER" -repage 0x0 -resize 3000x1800 "$F_QUOTE_TMP" || 
 		syl_exit_err "can't make quote text out of \"$QUOTE\"" $ERR_IM_QUOTE
 }
 # Make source canvas
@@ -210,9 +212,12 @@ fn_make_text_source() {
 	# adding extra right space to prevent italicized fonts from overflowing right border
 	local SOURCE="$1 "
 	local GRAVITY="east"
+	local BORDER="33%"
 	[[ $2 ]] && GRAVITY="$2"
+	[[ $3 ]] && BORDER="$3"
+	# create a 3000x1800 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x1800
 	# create a 3000x450 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x450
-	printf "$SOURCE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" caption:@- -bordercolor none -border 33% -repage 0x0 -resize 3000x450 "$F_SOURCE_TMP" || 
+	printf "$SOURCE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" caption:@- -bordercolor none -border "$BORDER" -repage 0x0 -resize 3000x450 "$F_SOURCE_TMP" || 
 		syl_exit_err "can't make source text out of \"$SOURCE\"" $ERR_IM_SOURCE
 }
 # Make full text canvas
@@ -224,7 +229,7 @@ fn_make_text() {
 	fn_parse_source "$QUOTE_STRING"
 	SOURCE="$RET"
 
-	fn_make_text_quote "$QUOTE" 1 "west"
+	fn_make_text_quote "$QUOTE" 1 "west" "3%"
 	fn_make_text_source "$SOURCE"
 	magick convert $V_IM -background none -fill none -gravity center "$F_QUOTE_TMP" "$F_SOURCE_TMP" -append -repage 0x0 -resize "$SIZE!" "$F_TEXT_TMP" ||
 		syl_exit_err "can't make text out of '$F_QUOTE_TMP' and '$F_SOURCE_TMP'" $ERR_IM_TEXT
