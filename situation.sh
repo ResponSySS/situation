@@ -138,22 +138,20 @@ fn_check_bg_file() {
 	else
 		magick identify "$BG_FILE" 1>/dev/null || ERR=1
 	fi
-	[[ $ERR ]] && syl_exit_err "invalid background image '$BG_FILE'" $ERR_WRONG_ARG
-}
-# Check bg color
-fn_check_bg_color() {
-	magick -list color | fgrep -w "$BG_COLOR" 1>/dev/null || syl_exit_err "invalid background color '$BG_COLOR'" $ERR_WRONG_ARG
+	if [[ $ERR ]]; then syl_exit_err "invalid background image '$BG_FILE'" $ERR_WRONG_ARG; fi
 }
 # Check font color
-fn_check_font_color() {
-	# Font color: is ! hex?
-	if [[ ! "$FONT_COLOR" =~ ^\#[A-Fa-f0-9]{6}$ ]]; then
-		# Font color: is ! rgb(...)?
-		if [[ ! "$FONT_COLOR" =~ ^rgb\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\)$ ]]; then
-			# Font color: is ! IM color?
-			magick -list color | fgrep -w "$FONT_COLOR" 1>/dev/null || syl_exit_err "invalid font color '$FONT_COLOR'" $ERR_WRONG_ARG
+fn_check_colors() {
+	for C in "$FONT_COLOR" "$BG_COLOR"; do
+		# is ! hex?
+		if [[ ! "$C" =~ ^\#[A-Fa-f0-9]{6}$ ]]; then
+			# is ! rgb(...)?
+			if [[ ! "$C" =~ ^rgb'('[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}')'$ ]]; then
+				# is ! IM color?
+				magick -list color | fgrep -w "$C" 1>/dev/null || syl_exit_err "invalid color '$C'" $ERR_WRONG_ARG
+			fi
 		fi
-	fi
+	done
 }
 # Check font files/names 
 fn_check_fonts() {
@@ -168,8 +166,8 @@ fn_check_fonts() {
 fn_check_args() {
 	fn_check_quote_string_set
 	fn_check_quote_string
-	[[ $BG_FILE ]] && fn_check_bg_file || fn_check_bg_color
-	fn_check_font_color
+	if [[ $BG_FILE ]]; then fn_check_bg_file ; fi
+	fn_check_colors
 	fn_check_fonts
 }
 # Set tmp files
@@ -197,18 +195,25 @@ fn_make_bg() {
 # Make quote canvas
 # $1: quote string, $2: enables guillemets (opt), $3: text gravity (opt)
 fn_make_text_quote() {
-	local QUOTE="$1"
+	# adding extra right space to prevent italicized fonts from overflowing right border
+	local QUOTE="$1 "
 	local GRAVITY="west"
 	[[ $2 ]] && QUOTE="« $1 »"
 	[[ $3 ]] && GRAVITY="$3"
-	printf "$QUOTE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x1800 -font "$FONT_QUOTE" -gravity "$GRAVITY" -bordercolor none -border 5% caption:@- "$F_QUOTE_TMP" || syl_exit_err "can't make quote text out of \"$QUOTE\"" $ERR_IM_QUOTE
+	# create a 3000x1800 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x1800
+	printf "$QUOTE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x1800 -font "$FONT_QUOTE" -gravity "$GRAVITY" caption:@- -bordercolor none -border 5% -repage 0x0 -resize 3000x1800 "$F_QUOTE_TMP" || 
+		syl_exit_err "can't make quote text out of \"$QUOTE\"" $ERR_IM_QUOTE
 }
 # Make source canvas
 # $1: source string, $2: text gravity (opt)
 fn_make_text_source() {
+	# adding extra right space to prevent italicized fonts from overflowing right border
+	local SOURCE="$1 "
 	local GRAVITY="east"
 	[[ $2 ]] && GRAVITY="$2"
-	printf "$1" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 2000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" -bordercolor none -border 25%   caption:@- "$F_SOURCE_TMP" || syl_exit_err "can't make source text out of \"$SOURCE\"" $ERR_IM_SOURCE
+	# create a 3000x450 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x450
+	printf "$SOURCE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" caption:@- -bordercolor none -border 33% -repage 0x0 -resize 3000x450 "$F_SOURCE_TMP" || 
+		syl_exit_err "can't make source text out of \"$SOURCE\"" $ERR_IM_SOURCE
 }
 # Make full text canvas
 fn_make_text() {
@@ -221,7 +226,7 @@ fn_make_text() {
 
 	fn_make_text_quote "$QUOTE" 1 "west"
 	fn_make_text_source "$SOURCE"
-	magick convert $V_IM -background none -fill none -gravity east "$F_QUOTE_TMP" "$F_SOURCE_TMP" -append -resize "$SIZE^" -crop "$SIZE+0+0" "$F_TEXT_TMP" ||
+	magick convert $V_IM -background none -fill none -gravity center "$F_QUOTE_TMP" "$F_SOURCE_TMP" -append -repage 0x0 -resize "$SIZE!" "$F_TEXT_TMP" ||
 		syl_exit_err "can't make text out of '$F_QUOTE_TMP' and '$F_SOURCE_TMP'" $ERR_IM_TEXT
 }
 # Merge text canvas and background canvas
@@ -314,7 +319,7 @@ main() {
 	syl_mktemp_dir "situation"
 	DIR_RENDER_TMP="$RET"
 	fn_set_tmp_files
-	[[ $OPT_KEEP_FILES ]] || trap 'rm -rfv $DIR_RENDER_TMP' EXIT
+	[[ $OPT_KEEP_FILES ]] || trap 'rm $DIR_RENDER_TMP/* ; rm -rfv  $DIR_RENDER_TMP' EXIT
 
 	msyl_say "Making background..."
 	fn_make_bg
