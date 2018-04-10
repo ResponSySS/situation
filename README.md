@@ -1,38 +1,45 @@
-# situation
+# situation.sh
 ## SITUATION QUOTE CREATOR
 
 Render a text into a pretty image.  
 **Requires: imagemagick, ttf-linux-libertine (optional, for default fonts)**
 
-### Usage:
-
-`situation.sh -q STRING -a STRING [OPTION]`
-
-### Options:
-
-    -q STRING       set quote text (mandatory)
-    -a STRING       set name of author (mandatory)
-    -o FILE         set path to output file (default: situation-render.png)
-    -b FILE         set background picture
-    -s [X]x[Y]      set size of rendered image in pixels with a 4:3 aspect ratio 
-                        (e.g. "2000x1500") (default: 1000x750)
-                        NOTE: a size larger than 3000x2250 is not recommended and
-                        not respecting the 4:3 aspect ratio will produce weird
-                        results
-    -fontq (PATH|NAME) 
-    -fonta (PATH|NAME)
-                    set font for quote and author with path to OTF font or font 
-                        name (show list with `convert -list font`) (default: 
-                        Linux-Biolinum-O, Linux-Biolinum-O-Italic)
-    -fontcol COLOR
-                    set font color with hexadecimal code (like "#FF00FF"), RGB
-                        values (like "rgb(255,0,123)") or ImageMagick color
-                        (show list with `convert -list color`) (default: snow3)
-                        NOTE: always put quotes around RGB values and hex code as
-                        in: "rgb(12,231,65)" and "#EF23EA"!
-    -f              force overwrite of output file (default: no)
-    -h|--help
-                    display this help
+	situation.sh 0.9
+	   Render a text into a pretty image.
+	USAGE
+	    situation.sh "{QUOTE STRING}" [OPTION]
+	OPTIONS
+	    QUOTE STRING    set text (see QUOTE STRING FORMAT) (mandatory)
+	    -o FILE         set output file (default: '/tmp/situation.png')
+	    -b NAME         set background color (default: 'black')
+	    -bf FILE        set background image (overrides -b)
+	    -s {X}x{Y}      set size of rendered image in pixels with a 4:3 aspect ratio 
+			     (e.g. 2000x1500) (default: '1000x750')
+			    NOTE: a size larger than 3000x2250 is not recommended
+	    -fontq {PATH|NAME} 
+	    -fonts {PATH|NAME}
+			    set font for quote and source with path to font file or name
+			     (default: 'Linux-Biolinum-O', 'Linux-Biolinum-O-Italic')
+	    -c COLOR
+			    set font color with hexadecimal code (e.g. "#FF00FF"), RGB
+			     values (e.g. "rgb(255,0,123)") or ImageMagick color
+			     (default: 'snow3')
+			    NOTE: always put quotes around this argument
+	    -f              force overwrite of output file (default: no)
+	    -h, --help      display this help
+	    --open          open rendered image file via `xdg-open`
+	    --list-fonts    show list of available fonts via `magick -list font`
+	    --list-colors   show list of available colors via `magick -list color`
+	QUOTE STRING FORMAT
+	    The text of a quote is parsed from a string formatted as follows:
+		{quote}@{source}
+	    Examples:
+		"Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l’Avoir"
+		"La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
+	EXAMPLE
+	    situation.sh "The Capital is really like, shit bruh, I swear!@Karlos Marakas to Fredo Engeles, in a bar"\
+		-bf my_bg.png -c pink2 -fontq Gentium -fonts my_font.otf -s 2000x1500 \
+		-o quote.png -f
 
 ### Examples:
 
