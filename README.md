@@ -36,23 +36,19 @@ Render a text into a pretty image.
 	    Examples:
 		"Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l’Avoir"
 		"La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
-	EXAMPLE
-	    situation.sh "The Capital is really like, shit bruh, I swear!@Karlos Marakas to Fredo Engeles, in a bar"\
-		-bf my_bg.png -c pink2 -fontq Gentium -fonts my_font.otf -s 2000x1500 \
-		-o quote.png -f
 
 ### Examples:
 
- `situation.sh -q "The Capital is really like, shit bruh, I swear!" -a "Karlos Marakas to Fredo Engeles, in a bar" -b my_bg.png -fontcol #FF00FF -fontq Gentium -fonta my_font.otf -s 2000x1500 -o quote.png -f`
+ `situation.sh "The Capital is really like, shit bruh, I swear!@Karlos Marakas to Fredo Engeles, in a bar" -bf my_bg.png -c \#FF00FF -fontq Gentium -fonts my_font.otf -s 2000x1500 -o quote.png -f`
  
  * By the example above, from this picture: ![my_bg.jpg](http://www.goldenmoustache.com/wp-content/uploads/2016/06/Hollande-Rap.jpg) 
  and this OTF font: ![direct link](https://github.com/ResponSySS/situation/raw/master/Test/LinuxBiolinumOItalic.otf), we get:
  ![quote.png](https://github.com/ResponSySS/situation/raw/master/Test/quote.png)
 
-`situation.sh -q "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire." -a "Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"`
+`situation.sh "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"`
 
 * The previous command, using default font, colors, and background image, gives us: ![situation-render.png](https://github.com/ResponSySS/situation/raw/master/Test/situation-render.png)
 
-`situation.sh -q "Le principe de la production marchande, c’est la perte de soi dans la création chaotique et inconsciente d’un monde qui échappe totalement à ses créateurs. Le noyau radicalement révolutionnaire de l’autogestion généralisée, c’est, au contraire, la direction consciente par tous de l’ensemble de la vie. [...] La tâche des Conseils Ouvriers ne sera donc pas l’autogestion du monde existant, mais sa transformation qualitative ininterrompue : le dépassement concret de la marchandise (en tant que gigantesque détour de la production de l’homme par lui-même)." -a "Internationale Situationniste, De la Misère en Milieu Étudiant (1966)" -o longer.png -f`
+`situation.sh "Le principe de la production marchande, c’est la perte de soi dans la création chaotique et inconsciente d’un monde qui échappe totalement à ses créateurs. Le noyau radicalement révolutionnaire de l’autogestion généralisée, c’est, au contraire, la direction consciente par tous de l’ensemble de la vie. [...] La tâche des Conseils Ouvriers ne sera donc pas l’autogestion du monde existant, mais sa transformation qualitative ininterrompue : le dépassement concret de la marchandise (en tant que gigantesque détour de la production de l’homme par lui-même).@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)" -o longer.png -f`
 
 * Same with a longer quote: ![longer.png](https://github.com/ResponSySS/situation/raw/master/Test/longer.png)
