@@ -10,11 +10,15 @@
 #       CREATED: 04/09/2018 07:55:01 PM
 #===============================================================================
 # TODO ::: Mon 15 May 2017 09:27:22 PM CEST
-## - respect the size of the provided bg picture : TOO DIFFICULT DUE TO
-### THE FACT THAT MAKING QUOTE + TEXT REQUIRES KNOWING THE BG SIZE IN ADVANCE (BC
-### WE HAVE TO SUPERSAMPLE) => NOT IF ASPECT RATIO IS PRESERVED!
-## - more test with bg pic:
-###     - pics with other aspect ratio
+# - respect the size of the provided bg picture : TOO DIFFICULT DUE TO
+#   THE FACT THAT MAKING QUOTE + TEXT REQUIRES KNOWING THE BG SIZE IN ADVANCE (BC
+#   WE HAVE TO SUPERSAMPLE) => NOT IF ASPECT RATIO IS PRESERVED!
+# - more test with bg pic:
+#       - pics with other aspect ratio
+# - add options: 
+#	-gq/-gs (quote/source gravity)
+#	-bq/-bs (quote/source border thickness)
+# - improve overall render with borders (why are they acting so weird?
 ##############################
 
 # Enable strict mode in debug mode
