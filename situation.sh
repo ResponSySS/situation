@@ -207,17 +207,16 @@ fn_make_text_quote() {
 		syl_exit_err "can't make quote text out of \"$QUOTE\"" $ERR_IM_QUOTE
 }
 # Make source canvas
-# $1: source string, $2: text gravity (opt)
+# $1: source string, $2: text gravity (opt), $3: border width (opt)
 fn_make_text_source() {
 	# adding extra right space to prevent italicized fonts from overflowing right border
 	local SOURCE="$1 "
 	local GRAVITY="east"
-	local BORDER="33%"
+	local BORDER="50%x25%"
 	[[ $2 ]] && GRAVITY="$2"
 	[[ $3 ]] && BORDER="$3"
-	# create a 3000x1800 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x1800
-	# create a 3000x450 img filled with the text, then add borders, then reset virtual canvas with -repage and resize to 3000x450
-	printf "$SOURCE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" caption:@- -bordercolor none -border "$BORDER" -repage 0x0 -resize 3000x450 "$F_SOURCE_TMP" || 
+	# create a 3000x450 img filled with the text, then add large borders, then offset the text on the side (according to gravity), then force-resize to 3000x450
+	printf "$SOURCE" | magick convert $V_IM -background none -fill "$FONT_COLOR" -size 3000x450  -font "$FONT_SOURCE" -gravity "$GRAVITY" caption:@- -bordercolor none -border "$BORDER" -crop +1250 -resize 3000x450! "$F_SOURCE_TMP" || 
 		syl_exit_err "can't make source text out of \"$SOURCE\"" $ERR_IM_SOURCE
 }
 # Make full text canvas
