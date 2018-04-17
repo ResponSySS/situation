@@ -23,14 +23,15 @@
 
 # Enable strict mode in debug mode
 [[ $DEBUG ]] #&& set -o nounset 
-set -o pipefail -o errexit
+set -o pipefail -o errexit -o errtrace
+trap 'syl_exit_err "at $FUNCNAME:$LINENO"' ERR
 
-LIBSYL=${LIBSYL:-$HOME/Devel/Src/radiquotes/libsyl.sh}
+readonly LIBSYL=${LIBSYL:-$HOME/Devel/Src/radiquotes/libsyl.sh}
 source "$LIBSYL"
-LIBPARSE=${LIBPARSE:-$HOME/Devel/Src/radiquotes/libparse.sh}
+readonly LIBPARSE=${LIBPARSE:-$HOME/Devel/Src/radiquotes/libparse.sh}
 source "$LIBPARSE"
 
-VERSION=0.9
+readonly VERSION=0.9
 
 QUOTE_STRING=
 FONT_QUOTE="Linux-Biolinum-O"
@@ -55,11 +56,11 @@ OPT_FORCE=
 OPT_OPEN=
 OPT_KEEP_FILES=
 # Error codes
-ERR_IM_BG=11
-ERR_IM_QUOTE=22
-ERR_IM_SOURCE=33
-ERR_IM_TEXT=44
-ERR_IM_COMPOSE=55
+readonly ERR_IM_BG=11
+readonly ERR_IM_QUOTE=22
+readonly ERR_IM_SOURCE=33
+readonly ERR_IM_TEXT=44
+readonly ERR_IM_COMPOSE=55
 
 # Print help
 fn_show_help() {
@@ -94,8 +95,8 @@ QUOTE STRING FORMAT
     The text of a quote is parsed from a string formatted as follows:
         {quote}@{source}
     Examples:
-        "Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l’Avoir"
-        "La domination consciente de l’histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
+        "Désormais, la fête à proportion de l'ennui spectaculaire qui suinte de tous les pores des espaces du fétichisme de la marchandise est partout puisque la vraie joie y est absolument et universellement déficiente à mesure que progresse la crise permanente de la jouissance véridique.@Francis Cousin, L'Être contre l'Avoir"
+        "La domination consciente de l'histoire par les hommes qui la font, voilà tout le projet révolutionnaire.@Internationale Situationniste, De la Misère en Milieu Étudiant (1966)"
 EXAMPLE
     $SCRIPT_NAME "The Capital is really like, shit bruh, I swear!@Karlos Marakas to Fredo Engeles, in a bar"\\
         -bf my_bg.png -c pink2 -fontq Gentium -fonts my_font.otf -s 2000x1500 \\
@@ -172,12 +173,12 @@ fn_check_args() {
 }
 # Set tmp files
 fn_set_tmp_files() {
-	F_BG_TMP_0="${DIR_RENDER_TMP}/bg_0.$EXT"
-	F_BG_TMP="${DIR_RENDER_TMP}/bg.$EXT"
-	F_QUOTE_TMP="${DIR_RENDER_TMP}/quote.$EXT"
-	F_SOURCE_TMP="${DIR_RENDER_TMP}/source.$EXT"
-	F_TEXT_TMP="${DIR_RENDER_TMP}/text.$EXT"
-	F_RENDER_TMP="${DIR_RENDER_TMP}/render.$EXT"
+	readonly F_BG_TMP_0="${DIR_RENDER_TMP}/bg_0.$EXT"
+	readonly F_BG_TMP="${DIR_RENDER_TMP}/bg.$EXT"
+	readonly F_QUOTE_TMP="${DIR_RENDER_TMP}/quote.$EXT"
+	readonly F_SOURCE_TMP="${DIR_RENDER_TMP}/source.$EXT"
+	readonly F_TEXT_TMP="${DIR_RENDER_TMP}/text.$EXT"
+	readonly F_RENDER_TMP="${DIR_RENDER_TMP}/render.$EXT"
 	syl_say_debug "Temporary files: \n\t$F_BG_TMP_0 \n\t$F_BG_TMP \n\t$F_QUOTE_TMP \n\t$F_SOURCE_TMP \n\t$F_TEXT_TMP \n\t$F_RENDER_TMP"
 }
 # Make bg canvas
@@ -210,7 +211,7 @@ fn_make_text_quote() {
 # $1: source string, $2: text gravity (opt), $3: border width (opt)
 fn_make_text_source() {
 	# adding extra right space to prevent italicized fonts from overflowing right border
-	local SOURCE="$1 "
+	readonly local SOURCE="$1 "
 	local GRAVITY="east"
 	local BORDER="50%x25%"
 	[[ $2 ]] && GRAVITY="$2"
