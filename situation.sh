@@ -20,10 +20,7 @@
 # - improve overall render with borders (why are they acting so weird?
 ##############################
 
-# Enable strict mode in debug mode
-[[ $DEBUG ]] #&& set -o nounset 
-set -o pipefail -o errexit -o errtrace
-trap 'syl_exit_err "at $FUNCNAME:$LINENO"' ERR
+set -o errexit
 
 readonly LIBSYL=${LIBSYL:-$HOME/Devel/Src/radiquotes/libsyl.sh}
 source "$LIBSYL"
