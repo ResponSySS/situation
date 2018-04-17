@@ -3,10 +3,9 @@
 #
 #         USAGE: ./situation.sh --help
 #
-#   DESCRIPTION: 
-#  REQUIREMENTS: ---
+#   DESCRIPTION: Situation quote creator
+#  REQUIREMENTS: ImageMagick (>=7.0)
 #        AUTHOR: Sylvain S. (ResponSyS), mail@sylsau.com
-#  ORGANIZATION: 
 #       CREATED: 04/09/2018 07:55:01 PM
 #===============================================================================
 # TODO ::: Mon 15 May 2017 09:27:22 PM CEST

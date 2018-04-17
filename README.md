@@ -2,7 +2,7 @@
 ## SITUATION QUOTE CREATOR
 
 Render a text into a pretty image.  
-**Requires: imagemagick, ttf-linux-libertine (optional, for default fonts)**
+**Requires: imagemagick (=>7.0), ttf-linux-libertine (optional, for default fonts)**
 
 ## Usage
 `situation.sh "{QUOTE STRING}" [OPTION]`
