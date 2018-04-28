@@ -9,6 +9,8 @@
 #       CREATED: 04/09/2018 07:55:01 PM
 #===============================================================================
 # TODO ::: Mon 15 May 2017 09:27:22 PM CEST
+# - possibility to change gravity of quote
+# - possibility to set margins of quote
 # - respect the size of the provided bg picture : TOO DIFFICULT DUE TO
 #   THE FACT THAT MAKING QUOTE + TEXT REQUIRES KNOWING THE BG SIZE IN ADVANCE (BC
 #   WE HAVE TO SUPERSAMPLE) => NOT IF ASPECT RATIO IS PRESERVED!
@@ -37,6 +39,7 @@ BG_FILE=
 BG_COLOR="black"
 SIZE="1000x750"
 EXT="png"
+# TODO: default outfile should not be in TMP_DIR or /tmp !
 OUTFILE="${TMP_DIR}/situation.${EXT}"
 QUOTE_STRING_SET=
 
